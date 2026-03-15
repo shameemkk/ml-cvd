@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart Disease Prediction</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --container-bg: rgba(30, 41, 59, 0.7);
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --input-bg: rgba(15, 23, 42, 0.6);
+            --border-color: rgba(51, 65, 85, 0.5);
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-color);
+            background-image: radial-gradient(circle at top right, #1e1b4b, #0f172a);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 40px 20px;
+            background: var(--container-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            text-align: center;
+            font-weight: 700;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+        }
+
+        form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 0.875rem;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .form-group:hover label {
+            color: var(--primary-color);
+        }
+
+        input,
+        select {
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: var(--input-bg);
+            color: var(--text-main);
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .select-wrapper {
+            position: relative;
+        }
+
+        .select-wrapper::after {
+            content: '▾';
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+            font-size: 1rem;
+        }
+
+        select option {
+            background: #1e293b;
+            color: var(--text-main);
+        }
+
+        .btn-submit {
+            grid-column: 1 / -1;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary-color), #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.6);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .result-container {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 600;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        .result-success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .result-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+
+        .error-message {
+            margin-top: 30px;
+            padding: 15px;
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid var(--danger);
+            color: #fca5a5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Predict Heart Disease</h1>
+        <p class="subtitle">Enter patient demographics and clinical parameters below</p>
+
+        {% if error %}
+        <div class="error-message">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        {% if prediction_result %}
+        <div
+            class="result-container {% if 'does not have' in prediction_result %}result-success{% else %}result-danger{% endif %}">
+            {{ prediction_result }}
+        </div>
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="/" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">Make Another
+                Prediction</a>
+        </div>
+        {% else %}
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="age">Age</label>
+                <input type="number" step="any" name="age" id="age" required placeholder="e.g. 52">
+            </div>
+            <div class="form-group">
+                <label for="sex">Gender</label>
+                <div class="select-wrapper">
+                    <select name="sex" id="sex" required>
+                        <option value="" disabled selected>Select Gender</option>
+                        <option value="1">Male</option>
+                        <option value="0">Female</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="cp">Type of Chest Pain</label>
+                <div class="select-wrapper">
+                    <select name="cp" id="cp" required>
+                        <option value="" disabled selected>Select Chest Pain Type</option>
+                        <option value="0">0.Typical Angina (heart-related)</option>
+                        <option value="1">1.Atypical Angina</option>
+                        <option value="2">2.Non-Anginal Pain</option>
+                        <option value="3">3.Asymptomatic (no chest pain)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="trestbps">Resting Blood Pressure (mm Hg)</label>
+                <input type="number" min="80" max="220" name="trestbps" id="trestbps" required placeholder="e.g. 125">
+            </div>
+            <div class="form-group">
+                <label for="chol">Serum Cholesterol (mg/dl)</label>
+                <input type="number" min="100" max="600" name="chol" id="chol" required placeholder="e.g. 212">
+            </div>
+            <div class="form-group">
+                <label for="fbs">Fasting Blood Sugar &gt; 120 mg/dl</label>
+                <div class="select-wrapper">
+                    <select name="fbs" id="fbs" required>
+                        <option value="" disabled selected>Select an option</option>
+                        <option value="1">1.Yes</option>
+                        <option value="0">0.No</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="restecg">Resting ECG Result</label>
+                <div class="select-wrapper">
+                    <select name="restecg" id="restecg" required>
+                        <option value="" disabled selected>Select ECG Result</option>
+                        <option value="0">0.Normal</option>
+                        <option value="1">1.ST-T Wave Abnormality</option>
+                        <option value="2">2.Left Ventricular Hypertrophy</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="thalach">Max Heart Rate Achieved (bpm)</label>
+                <input type="number" min="60" max="250" name="thalach" id="thalach" required placeholder="e.g. 168">
+            </div>
+            <div class="form-group">
+                <label for="exang">Exercise Angina</label>
+                <div class="select-wrapper">
+                    <select name="exang" id="exang" required>
+                        <option value="" disabled selected>Select an option</option>
+                        <option value="1">1.Yes</option>
+                        <option value="0">0.No</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="oldpeak">ST Depression</label>
+                <input type="number" step="0.1" min="0" max="10" name="oldpeak" id="oldpeak" required
+                    placeholder="e.g. 1.0">
+            </div>
+            <div class="form-group">
+                <label for="slope">Slope of Peak Exercise ST Segment</label>
+                <div class="select-wrapper">
+                    <select name="slope" id="slope" required>
+                        <option value="" disabled selected>Select Slope Type</option>
+                        <option value="0">0.Downsloping</option>
+                        <option value="1">1.Flat</option>
+                        <option value="2">2.Upsloping</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="ca">Major Vessels Coloured by Fluoroscopy</label>
+                <div class="select-wrapper">
+                    <select name="ca" id="ca" required>
+                        <option value="" disabled selected>Select count</option>
+                        <option value="0">0 vessels</option>
+                        <option value="1">1 vessel</option>
+                        <option value="2">2 vessels</option>
+                        <option value="3">3 vessels</option>
+                        <option value="4">4 vessels</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="thal">Thalassemia</label>
+                <div class="select-wrapper">
+                    <select name="thal" id="thal" required>
+                        <option value="" disabled selected>Select type</option>
+                        <option value="0">0 - Unknown</option>
+                        <option value="1">1 - Fixed Defect</option>
+                        <option value="2">2 - Normal</option>
+                        <option value="3">3 - Reversible Defect</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">Predict Now</button>
+        </form>
+        {% endif %}
+    </div>
+</body>
+
+</html>
