@@ -8,6 +8,33 @@ from django.conf import settings
 
 model = None
 
+
+def get_patient_suggestions(has_heart_disease):
+    if has_heart_disease:
+        return {
+            'title': 'Suggested next steps',
+            'disclaimer': 'This prediction is not a diagnosis. Please review it with a qualified doctor or cardiologist.',
+            'items': [
+                'Book a medical consultation soon for a proper cardiac evaluation.',
+                'Seek urgent care immediately if there is chest pain, fainting, severe breathlessness, or pain spreading to the arm or jaw.',
+                'Monitor blood pressure, blood sugar, cholesterol, and any recurring symptoms.',
+                'Avoid smoking, limit alcohol, and reduce salty or heavily processed foods.',
+                'Follow only clinician-approved exercise, medication, and follow-up plans.',
+            ],
+        }
+
+    return {
+        'title': 'Suggested health guidance',
+        'disclaimer': 'A negative prediction does not guarantee that heart disease is absent.',
+        'items': [
+            'Continue routine health checkups and discuss persistent symptoms with a doctor.',
+            'Maintain regular physical activity, balanced meals, and healthy sleep habits.',
+            'Keep blood pressure, cholesterol, blood sugar, and weight under control.',
+            'Avoid smoking and limit alcohol intake to reduce future cardiac risk.',
+            'Get urgent medical help if new chest pain, severe breathlessness, or fainting appears.',
+        ],
+    }
+
 def get_model():
     global model
     if model is not None:
@@ -29,6 +56,8 @@ def get_model():
 
 def home(request):
     prediction_result = None
+    patient_suggestions = None
+    confidence = None
     error = None
 
     if request.method == 'POST':
@@ -55,8 +84,12 @@ def home(request):
                 input_data_as_numpy_array = np.asarray(input_data)
                 input_data_reshaped = input_data_as_numpy_array.reshape(1, -1)
                 prediction = clf.predict(input_data_reshaped)
+                probabilities = clf.predict_proba(input_data_reshaped)[0]
+                has_heart_disease = prediction[0] == 1
+                confidence = round(probabilities[1 if has_heart_disease else 0] * 100, 1)
+                patient_suggestions = get_patient_suggestions(has_heart_disease)
 
-                if prediction[0] == 0:
+                if not has_heart_disease:
                     prediction_result = 'The Person does not have a Heart Disease'
                 else:
                     prediction_result = 'The Person has Heart Disease'
@@ -66,4 +99,13 @@ def home(request):
         except Exception as e:
             error = f"Error processing input: {str(e)}"
 
-    return render(request, 'index.html', {'prediction_result': prediction_result, 'error': error})
+    return render(
+        request,
+        'index.html',
+        {
+            'prediction_result': prediction_result,
+            'patient_suggestions': patient_suggestions,
+            'confidence': confidence,
+            'error': error,
+        },
+    )

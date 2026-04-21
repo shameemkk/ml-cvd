@@ -186,12 +186,49 @@
             color: var(--danger);
         }
 
+        .confidence {
+            margin-top: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            opacity: 0.85;
+        }
+
         .error-message {
             margin-top: 30px;
             padding: 15px;
             background: rgba(239, 68, 68, 0.1);
             border-left: 4px solid var(--danger);
             color: #fca5a5;
+        }
+
+        .advice-card {
+            margin-top: 20px;
+            padding: 22px;
+            border-radius: 16px;
+            background: rgba(15, 23, 42, 0.55);
+            border: 1px solid var(--border-color);
+        }
+
+        .advice-card h2 {
+            margin: 0 0 10px;
+            font-size: 1.2rem;
+        }
+
+        .advice-card p {
+            margin: 0 0 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .advice-card ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #e2e8f0;
+            line-height: 1.7;
+        }
+
+        .advice-card li + li {
+            margin-top: 8px;
         }
 
         .label-row {
@@ -269,7 +306,7 @@
 
 <body>
     <div class="container">
-        <h1>Predict Heart Disease</h1>
+        <h1>Predict Heart Disease🫀</h1>
         <p class="subtitle">Enter patient demographics and clinical parameters below</p>
 
         {% if error %}
@@ -282,7 +319,21 @@
         <div
             class="result-container {% if 'does not have' in prediction_result %}result-success{% else %}result-danger{% endif %}">
             {{ prediction_result }}
+            {% if confidence is not None %}
+            <div class="confidence">Model confidence: {{ confidence }}%</div>
+            {% endif %}
         </div>
+        {% if patient_suggestions %}
+        <div class="advice-card">
+            <h2>{{ patient_suggestions.title }}</h2>
+            <p>{{ patient_suggestions.disclaimer }}</p>
+            <ul>
+                {% for suggestion in patient_suggestions.items %}
+                <li>{{ suggestion }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
         <div style="text-align: center; margin-top: 20px;">
             <a href="/" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">Make Another
                 Prediction</a>
