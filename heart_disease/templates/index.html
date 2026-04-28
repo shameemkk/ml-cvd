@@ -164,6 +164,30 @@
             transform: translateY(0);
         }
 
+        .btn-submit:disabled {
+            background: linear-gradient(135deg, #475569, #64748b);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            opacity: 0.85;
+        }
+
+        .btn-submit .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-top-color: #fff;
+            border-radius: 50%;
+            margin-right: 8px;
+            vertical-align: -2px;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
         .result-container {
             margin-top: 30px;
             padding: 20px;
@@ -339,12 +363,12 @@
                 Prediction</a>
         </div>
         {% else %}
-        <form method="POST">
+        <form method="POST" id="predict-form">
             {% csrf_token %}
             <div class="form-group">
                 <div class="label-row">
                     <label for="age">Age</label>
-                    <span class="info-btn">i<span class="tooltip">Patient's age in years. Typical range: 29–77.</span></span>
+                    <span class="info-btn">i<span class="tooltip">Age in years. Healthy patients in this dataset: median 52, typical range 45–59. Risk rises noticeably after ~55.</span></span>
                 </div>
                 <input type="number" min="1" max="120" name="age" id="age" required placeholder="e.g. 52">
             </div>
@@ -361,7 +385,7 @@
             <div class="form-group">
                 <div class="label-row">
                     <label for="cp">Type of Chest Pain</label>
-                    <span class="info-btn">i<span class="tooltip">0 = Typical Angina (heart-related chest pain)&#10;1 = Atypical Angina&#10;2 = Non-Anginal Pain&#10;3 = Asymptomatic (no chest pain)</span></span>
+                    <span class="info-btn">i<span class="tooltip">Healthy patients most often report Non-Anginal Pain (42%) or Atypical Angina (25%). Typical Angina (cp=0) is the strongest signal of disease in this dataset — present in 75% of sick patients.</span></span>
                 </div>
                 <div class="select-wrapper">
                     <select name="cp" id="cp" required>
@@ -376,21 +400,21 @@
             <div class="form-group">
                 <div class="label-row">
                     <label for="trestbps">Resting Blood Pressure (mm Hg)</label>
-                    <span class="info-btn">i<span class="tooltip">Blood pressure measured at rest. Normal range is 90–120 mm Hg. High BP may indicate hypertension.</span></span>
+                    <span class="info-btn">i<span class="tooltip">Resting BP. Healthy patients here: median 130, typical 120–140. Clinical normal is &lt;120/80; 130–139 = stage 1 hypertension. Keep below 130 to lower cardiac risk.</span></span>
                 </div>
                 <input type="number" min="80" max="220" name="trestbps" id="trestbps" required placeholder="e.g. 125">
             </div>
             <div class="form-group">
                 <div class="label-row">
                     <label for="chol">Serum Cholesterol (mg/dl)</label>
-                    <span class="info-btn">i<span class="tooltip">Total cholesterol level in blood. Normal: below 200. Borderline high: 200–239. High: 240+.</span></span>
+                    <span class="info-btn">i<span class="tooltip">Total cholesterol. Healthy patients: median 234, typical 209–267. Clinical targets: &lt;200 desirable, 200–239 borderline, ≥240 high. Diet, exercise and statins help lower it.</span></span>
                 </div>
                 <input type="number" min="100" max="600" name="chol" id="chol" required placeholder="e.g. 212">
             </div>
             <div class="form-group">
                 <div class="label-row">
                     <label for="fbs">Fasting Blood Sugar &gt; 120 mg/dl</label>
-                    <span class="info-btn">i<span class="tooltip">Is fasting blood sugar greater than 120 mg/dl? Yes may indicate diabetes risk, which is linked to heart disease.</span></span>
+                    <span class="info-btn">i<span class="tooltip">86% of healthy patients answer "No" here. A "Yes" suggests prediabetes/diabetes (clinical fasting normal is 70–99 mg/dl), which raises cardiac risk substantially.</span></span>
                 </div>
                 <div class="select-wrapper">
                     <select name="fbs" id="fbs" required>
@@ -403,7 +427,7 @@
             <div class="form-group">
                 <div class="label-row">
                     <label for="restecg">Resting ECG Result</label>
-                    <span class="info-btn">i<span class="tooltip">0 = Normal&#10;1 = ST-T wave abnormality (possible ischemia)&#10;2 = Left ventricular hypertrophy (enlarged heart muscle)</span></span>
+                    <span class="info-btn">i<span class="tooltip">Healthy patients split fairly evenly: 58% ST-T abnormality, 41% Normal, ~1% LVH. On its own this feature is a weak predictor — what matters more is exercise ECG (slope/oldpeak).</span></span>
                 </div>
                 <div class="select-wrapper">
                     <select name="restecg" id="restecg" required>
@@ -417,14 +441,14 @@
             <div class="form-group">
                 <div class="label-row">
                     <label for="thalach">Max Heart Rate Achieved (bpm)</label>
-                    <span class="info-btn">i<span class="tooltip">Maximum heart rate reached during exercise. Lower max HR can indicate cardiac stress. Typical range: 60–250 bpm.</span></span>
+                    <span class="info-btn">i<span class="tooltip">Strong protective signal. Healthy patients: median 161, typical 149–172. Sick patients average ~139. Rule of thumb: max HR ≈ 220 − age; reaching close to that is a healthy sign.</span></span>
                 </div>
                 <input type="number" min="60" max="250" name="thalach" id="thalach" required placeholder="e.g. 168">
             </div>
             <div class="form-group">
                 <div class="label-row">
                     <label for="exang">Exercise-Induced Angina</label>
-                    <span class="info-btn">i<span class="tooltip">Does the patient experience chest pain/angina during physical exercise? A "Yes" is associated with coronary artery disease.</span></span>
+                    <span class="info-btn">i<span class="tooltip">86% of healthy patients answer "No". A "Yes" is one of the strongest red flags in this dataset — strongly associated with coronary artery blockage. Get evaluated if exercise reliably triggers chest pain.</span></span>
                 </div>
                 <div class="select-wrapper">
                     <select name="exang" id="exang" required>
@@ -437,14 +461,14 @@
             <div class="form-group">
                 <div class="label-row">
                     <label for="oldpeak">ST Depression</label>
-                    <span class="info-btn">i<span class="tooltip">ST depression induced by exercise relative to rest. Higher values indicate more stress on the heart. Range: 0–10.</span></span>
+                    <span class="info-btn">i<span class="tooltip">Healthy patients: median 0.2, 75% are ≤1.0. Sick patients average 1.6. Values ≥2.0 strongly suggest ischemia and warrant cardiology follow-up.</span></span>
                 </div>
                 <input type="number" step="0.1" min="0" max="10" name="oldpeak" id="oldpeak" required placeholder="e.g. 1.0">
             </div>
             <div class="form-group">
                 <div class="label-row">
                     <label for="slope">Slope of Peak Exercise ST</label>
-                    <span class="info-btn">i<span class="tooltip">Shape of the ST segment during peak exercise.&#10;0 = Downsloping (most concerning)&#10;1 = Flat&#10;2 = Upsloping (healthiest)</span></span>
+                    <span class="info-btn">i<span class="tooltip">65% of healthy patients show Upsloping (slope=2) — the healthiest pattern. Flat (66% of sick patients) and Downsloping correlate with reduced coronary blood flow.</span></span>
                 </div>
                 <div class="select-wrapper">
                     <select name="slope" id="slope" required>
@@ -458,7 +482,7 @@
             <div class="form-group">
                 <div class="label-row">
                     <label for="ca">Major Vessels (Fluoroscopy)</label>
-                    <span class="info-btn">i<span class="tooltip">Number of major blood vessels (0–4) visible on fluoroscopy scan. More coloured vessels may indicate blockage.</span></span>
+                    <span class="info-btn">i<span class="tooltip">The single strongest predictor in this dataset. 79% of healthy patients have ca=0 (no major vessels show calcification). Each additional vessel sharply increases disease likelihood.</span></span>
                 </div>
                 <div class="select-wrapper">
                     <select name="ca" id="ca" required>
@@ -474,7 +498,7 @@
             <div class="form-group">
                 <div class="label-row">
                     <label for="thal">Thalassemia</label>
-                    <span class="info-btn">i<span class="tooltip">Blood disorder affecting haemoglobin.&#10;0 = Unknown&#10;1 = Fixed Defect (permanent damage)&#10;2 = Normal&#10;3 = Reversible Defect (stress-induced)</span></span>
+                    <span class="info-btn">i<span class="tooltip">79% of healthy patients are Normal (thal=2). Reversible Defect (thal=3) appears in 65% of sick patients and is a major warning sign — indicates stress-induced reduced perfusion.</span></span>
                 </div>
                 <div class="select-wrapper">
                     <select name="thal" id="thal" required>
@@ -487,8 +511,28 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn-submit">Predict Now</button>
+            <button type="submit" class="btn-submit" id="predict-btn">Predict Now</button>
         </form>
+        <script>
+            (function () {
+                var form = document.getElementById('predict-form');
+                var btn = document.getElementById('predict-btn');
+                if (!form || !btn) return;
+
+                function resetBtn() {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Predict Now';
+                }
+
+                form.addEventListener('submit', function () {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner"></span>Predicting... please wait';
+                });
+
+                // Re-enable on fresh load and when restored from bfcache (browser back/forward).
+                window.addEventListener('pageshow', resetBtn);
+            })();
+        </script>
         {% endif %}
     </div>
 </body>
